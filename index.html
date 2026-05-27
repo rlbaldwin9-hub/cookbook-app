@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>My Cookbook Builder</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;height:100vh;overflow:hidden;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+button,input,textarea{font-family:inherit;}button{cursor:pointer;}
+.serif{font-family:'Georgia','Times New Roman',serif;}
+#app{display:flex;height:100vh;}
+#left{width:54%;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
+#right{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--card);}
+.nav{display:flex;align-items:center;gap:6px;padding:10px 14px;flex-shrink:0;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.nav-btn{font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);}
+.nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.spacer{flex:1;}
+#content{flex:1;overflow-y:auto;padding:16px 18px;}
+.search-bar{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.search-bar input{width:100%;padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg);color:var(--text);}
+#search-results{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg);max-height:180px;overflow-y:auto;display:none;}
+.search-item{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text);display:flex;justify-content:space-between;}
+.chat-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#messages{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:86%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.65;white-space:pre-wrap;}
+.msg.user{align-self:flex-end;background:var(--primary);color:#fff;}
+.msg.assistant{align-self:flex-start;background:var(--bg);color:var(--text);border:1px solid var(--border);}
+.chat-input{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:var(--card);}
+#chat-textarea{flex:1;resize:none;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);}
+#send-btn{align-self:flex-end;padding:9px 16px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:13px;}
+#send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.chip{font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--card);color:var(--muted);}
+.diff-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;}
+.stat-num{font-size:28px;font-family:'Georgia',serif;color:var(--primary);}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.recipe-accent{border-left:4px solid var(--chapter);padding-left:14px;margin-bottom:16px;}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--chapter);margin-bottom:8px;}
+.ing-row{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.step-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;align-items:flex-start;}
+.step-num{min-width:22px;height:22px;border-radius:50%;background:var(--chapter);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.ch-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:6px 0;border-bottom:2px solid var(--chapter);margin-bottom:8px;}
+.toc-item{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:3px;}
+.toc-item:hover{background:var(--bg);}
+.inv-tag{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--border);color:var(--text);background:var(--card);}
+.shop-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.check-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
+.check-box.done{background:var(--primary);border-color:var(--primary);}
+#theme-bar{padding:10px 14px;border-bottom:1px solid var(--border);display:none;gap:8px;flex-wrap:wrap;background:var(--card);max-height:260px;overflow-y:auto;}
+.theme-btn{padding:4px 12px;border-radius:99px;font-size:12px;cursor:pointer;}
+
+/* Gate / Setup screens */
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;z-index:100;}
+.screen-box{max-width:480px;width:100%;background:#fff;border-radius:16px;border:1px solid #E8D5B7;padding:40px 36px;text-align:center;}
+.field{margin-bottom:14px;text-align:left;}
+.flabel{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#8B6650;display:block;margin-bottom:4px;}
+.finput{width:100%;padding:9px 12px;border-radius:8px;border:1px solid #E8D5B7;font-size:14px;background:#FDF6EE;color:#3D1F0A;}
+.go-btn{width:100%;padding:11px;border-radius:8px;background:#8B4513;color:#fff;border:none;font-size:15px;font-weight:500;}
+.hints div{cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted;line-height:2.2;font-size:13px;}
+
+/* Theme grid */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;}
+.theme-swatch{border-radius:10px;padding:8px 6px;cursor:pointer;text-align:center;font-size:11px;font-weight:500;border:2px solid transparent;transition:transform .1s;}
+.theme-swatch:hover{transform:scale(1.04);}
+.theme-swatch.selected{border-color:#333;}
+.custom-theme-row{display:flex;gap:8px;margin-top:8px;}
+.custom-theme-row input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #E8D5B7;font-size:13px;background:#FDF6EE;color:#3D1F0A;}
+.custom-theme-row button{padding:8px 14px;border-radius:8px;border:none;background:#8B4513;color:#fff;font-size:12px;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ACCESS GATE -->
+<div class="screen" id="gate-screen" style="background:#FDF6EE;">
+  <div class="screen-box">
+    <div style="font-size:40px;margin-bottom:10px">🔐</div>
+    <h1 class="serif" style="font-size:24px;font-weight:400;color:#3D1F0A;margin:0 0 8px">RLB Designs Cookbook Builder</h1>
+    <p style="color:#8B6650;font-size:14px;margin:0 0 24px">Enter your access code to get started.<br>Access codes are included with your Canva template purchase.</p>
+    <div class="field">
+      <label class="flabel">Access Code</label>
+      <input class="finput" id="access-input" type="password" placeholder="Enter your code…" onkeydown="if(event.key==='Enter')checkCode()"/>
+    </div>
+    <div id="code-error" style="color:#A0364A;font-size:13px;margin-bottom:12px;display:none">❌ Incorrect code. Please try again.</div>
+    <button class="go-btn" onclick="checkCode()">Unlock →</button>
+    <p style="margin-top:16px;font-size:12px;color:#8B6650">Don't have a code? <a href="https://sites.google.com/view/rlbdesigns/digital-downloads/canva-templates" target="_blank" style="color:#8B4513">Get a Canva template →</a></p>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div class="screen" id="setup-screen" style="background:#FDF6EE;display:none;">
+  <div class="screen-box" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+    <div style="font-size:40px;margin-bottom:8px">📖</div>
+    <h1 class="serif" style="font-size:24px;font-weight:400;color:#3D1F0A;margin:0 0 6px">Set Up Your Cookbook</h1>
+    <p style="color:#8B6650;font-size:14px;margin:0 0 24px">Just a few details to make it yours.</p>
+    <div class="field"><label class="flabel">Cookbook Title</label><input class="finput" id="s-title" placeholder="My Family Cookbook"/></div>
+    <div class="field"><label class="flabel">Author Name</label><input class="finput" id="s-author" placeholder="Your name"/></div>
+    <div class="field"><label class="flabel">Tagline (optional)</label><input class="finput" id="s-tagline" placeholder="Recipes made with love…"/></div>
+    <div class="field">
+      <label class="flabel">Choose a Color Theme</label>
+      <div class="theme-grid" id="setup-theme-grid"></div>
+      <div style="margin-top:12px;border-top:1px solid #E8D5B7;padding-top:12px;">
+        <label class="flabel">✨ Or describe your own theme</label>
+        <p style="font-size:12px;color:#8B6650;margin-bottom:8px">e.g. "ocean blue and gold", "purple lavender", "bright tropical"</p>
+        <div class="custom-theme-row">
+          <input id="custom-theme-input" placeholder="Describe a color vibe…"/>
+          <button onclick="generateCustomTheme()" id="gen-theme-btn">Generate 🎨</button>
+        </div>
+        <div id="custom-theme-preview" style="display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:13px;text-align:left"></div>
+      </div>
+    </div>
+    <button class="go-btn" onclick="startCookbook()">Start my cookbook →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div id="left">
+    <div class="nav" id="main-nav">
+      <button class="nav-btn active" onclick="setView('cover')">Cover</button>
+      <button class="nav-btn" onclick="setView('toc')">Contents</button>
+      <button class="nav-btn" onclick="setView('inventory')">Pantry</button>
+      <button class="nav-btn" onclick="setView('shopping')">Shop</button>
+      <div class="spacer"></div>
+      <button class="nav-btn" onclick="randomRecipe()">🎲</button>
+      <button class="nav-btn" onclick="toggleThemes()">🎨</button>
+    </div>
+    <div id="theme-bar"></div>
+    <div class="search-bar"><input id="search-input" placeholder="Search recipes or ingredients…" oninput="doSearch(this.value)"/></div>
+    <div id="search-results"></div>
+    <div id="content"></div>
+  </div>
+  <div id="right">
+    <div class="chat-header">
+      <div class="serif" style="font-size:16px;color:var(--text)">Your cookbook assistant</div>
+      <p style="margin:2px 0 0;font-size:11px;color:var(--muted)">Add recipes · organize chapters · convert measurements · shopping lists</p>
+    </div>
+    <div id="messages">
+      <div class="hints" id="hints" style="text-align:center;margin-top:32px;color:var(--muted)">
+        <div style="font-size:28px;margin-bottom:10px">👨‍🍳</div>
+        <div onclick="setInput('Add a recipe for banana bread')">"Add a recipe for banana bread"</div>
+        <div onclick="setInput('Organize my recipes into chapters')">"Organize my recipes into chapters"</div>
+        <div onclick="setInput('Convert everything to metric')">"Convert everything to metric"</div>
+        <div onclick="setInput('Make a shopping list for lasagna')">"Make a shopping list for lasagna"</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <textarea id="chat-textarea" rows="2" placeholder="Add a recipe, organize chapters, convert to metric…" onkeydown="handleKey(event)"></textarea>
+      <button id="send-btn" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── ACCESS CODE ──────────────────────────────────────────────────────────────
+// Change these to whatever codes you want to give customers!
+const ACCESS_CODES = ["RLBCOOKS2025","COOKBOOK24","CANVACHEF"];
+
+// ── GEMINI API KEY ───────────────────────────────────────────────────────────
+const GEMINI_API_KEY = "";
+const GEMINI_URL = "/.netlify/functions/gemini";
+
+// ── THEMES ───────────────────────────────────────────────────────────────────
+const THEMES = {
+  rustic:        {name:"Rustic",            emoji:"🌾", primary:"#8B4513",accent:"#D2691E",bg:"#FDF6EE",card:"#FFF8F0",border:"#E8D5B7",text:"#3D1F0A",muted:"#8B6650",chapter:"#C17F3E"},
+  modern:        {name:"Modern Minimal",    emoji:"⬛", primary:"#1A1A1A",accent:"#4A4A4A",bg:"#F8F8F6",card:"#FFFFFF",border:"#E0E0DC",text:"#1A1A1A",muted:"#6B6B6B",chapter:"#2D2D2D"},
+  mediterranean: {name:"Mediterranean",     emoji:"🫒", primary:"#1B4F72",accent:"#2E86AB",bg:"#EEF4F8",card:"#F5F9FC",border:"#B8D4E3",text:"#0D2B3E",muted:"#4A7A96",chapter:"#1B6CA8"},
+  garden:        {name:"Garden",            emoji:"🌿", primary:"#2D5016",accent:"#4A7C25",bg:"#F2F7EE",card:"#F8FCF5",border:"#C4D9B3",text:"#1A3009",muted:"#4D6B38",chapter:"#3A6B1A"},
+  rose:          {name:"Rose Kitchen",      emoji:"🌹", primary:"#7B2D3E",accent:"#B5485A",bg:"#FDF0F2",card:"#FFF5F6",border:"#E8C4CB",text:"#3D0D15",muted:"#9B5A66",chapter:"#A0364A"},
+  coastal:       {name:"Coastal",           emoji:"🌊", primary:"#1A6B7C",accent:"#2E9EB5",bg:"#EEF8FA",card:"#F5FBFC",border:"#B3DDE5",text:"#0D3A42",muted:"#4A8A96",chapter:"#1D8A9E"},
+  farmhouse:     {name:"Farmhouse",         emoji:"🏡", primary:"#4A3728",accent:"#7A5C44",bg:"#F7F2EC",card:"#FBF8F4",border:"#DDD0BF",text:"#2A1F16",muted:"#7A6555",chapter:"#6B4E38"},
+  lavender:      {name:"Lavender Dream",    emoji:"💜", primary:"#5B3E8C",accent:"#8B6EC2",bg:"#F4F0FA",card:"#F9F7FD",border:"#D8CCF0",text:"#2D1A5A",muted:"#7A65A8",chapter:"#7048B0"},
+  sunset:        {name:"Sunset Kitchen",    emoji:"🌅", primary:"#C4501A",accent:"#E8762E",bg:"#FEF4EE",card:"#FFF8F3",border:"#F0D0B8",text:"#4A1A06",muted:"#A06040",chapter:"#D4622A"},
+  midnight:      {name:"Midnight Feast",    emoji:"🌙", primary:"#C9A84C",accent:"#E8C870",bg:"#1A1A2E",card:"#16213E",border:"#2D3561",text:"#E8E0D0",muted:"#9A9080",chapter:"#C9A84C"},
+};
+
+let customTheme = null;
+const DIFF = {easy:{label:"Easy",color:"#2D7A2D"},medium:{label:"Medium",color:"#B8860B"},hard:{label:"Hard",color:"#A0364A"}};
+const SYSTEM = `You are a personal cookbook assistant helping create a beautifully structured cookbook.
+
+EVERY response MUST end with this exact marker and valid JSON — no markdown, no fences:
+
+COOKBOOK_STATE:
+{"title":"","author":"","tagline":"","chapters":[{"name":"","recipes":[{"title":"","description":"","servings":2,"prepTime":"","cookTime":"","difficulty":"easy","ingredients":[{"amount":"","unit":"","name":""}],"steps":[""],"notes":""}]}],"inventory":[""]}
+
+Rules:
+- Preserve ALL existing data unless told to remove it.
+- Assign difficulty easy/medium/hard based on complexity.
+- Metric: oz->g(28), cups->ml(240), tbsp->ml(15), tsp->ml(5), lb->kg(0.45), F->C((F-32)*5/9 rounded).
+- Inventory = deduplicated ingredient names across all recipes.
+- Organize into chapters: Breakfast, Lunch, Dinner, Desserts, Snacks, Drinks, Sides.
+- Reply warmly and briefly before the COOKBOOK_STATE marker.`;
+
+let cb={title:"",author:"",tagline:"",chapters:[],inventory:[]};
+let msgs=[];
+let currentTheme="rustic";
+let currentView="cover";
+let shopList=[];
+let shopChecked={};
+let chOpen={};
+let activeRecipe=null;
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+function saveData(){try{localStorage.setItem("cbk_v5",JSON.stringify({cb,msgs,theme:currentTheme,done:true}));}catch(e){}}
+function loadData(){
+  try{const d=JSON.parse(localStorage.getItem("cbk_v5"));
+    if(!d)return false;
+    if(d.cb)cb=d.cb;if(d.msgs)msgs=d.msgs;if(d.theme)currentTheme=d.theme;
+    return!!d.done;
+  }catch(e){return false;}
+}
+
+// ── ACCESS GATE ──────────────────────────────────────────────────────────────
+function checkCode(){
+  const val=document.getElementById("access-input").value.trim().toUpperCase();
+  const validCodes=ACCESS_CODES.map(c=>c.toUpperCase());
+  if(validCodes.includes(val)){
+    localStorage.setItem("cbk_access","granted");
+    document.getElementById("gate-screen").style.display="none";
+    if(loadData()){
+      document.getElementById("app").style.display="flex";
+      applyTheme(currentTheme);renderThemeBar();setView("cover");
+    } else {
+      document.getElementById("setup-screen").style.display="flex";
+      renderSetupThemes();
+    }
+  } else {
+    document.getElementById("code-error").style.display="block";
+    document.getElementById("access-input").value="";
+  }
+}
+
+// ── CUSTOM THEME GENERATOR ───────────────────────────────────────────────────
+async function generateCustomTheme(){
+  const desc=document.getElementById("custom-theme-input").value.trim();
+  if(!desc)return;
+  const btn=document.getElementById("gen-theme-btn");
+  btn.textContent="Thinking…"; btn.disabled=true;
+  try{
+    const res=await fetch(GEMINI_URL,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on this description: "${desc}".
+Return ONLY valid JSON, no explanation, no markdown:
+{"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}
+Rules: bg should be very light, card slightly lighter than bg, text should be very readable on bg, primary and chapter should be rich/saturated, muted should be softer version of text.`}]}],
+        generationConfig:{maxOutputTokens:300,temperature:0.8}
+      })
+    });
+    const data=await res.json();
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const cleaned=raw.replace(/```json|```/g,"").trim();
+    const t=JSON.parse(cleaned);
+    t.emoji="✨";
+    customTheme=t;
+    // show preview
+    const prev=document.getElementById("custom-theme-preview");
+    prev.style.display="block";
+    prev.style.background=t.bg;
+    prev.style.border=`2px solid ${t.primary}`;
+    prev.innerHTML=`<span style="color:${t.primary};font-weight:600;font-size:14px">${t.name}</span><br>
+      <span style="color:${t.text};font-size:12px">Sample text — </span>
+      <span style="color:${t.chapter};font-size:12px">Chapter heading — </span>
+      <span style="color:${t.muted};font-size:12px">Muted note</span><br>
+      <div style="margin-top:6px;display:flex;gap:6px">
+        ${[t.primary,t.accent,t.chapter,t.bg,t.card,t.border].map(c=>`<div style="width:20px;height:20px;border-radius:4px;background:${c};border:1px solid #ccc"></div>`).join("")}
+      </div>
+      <button onclick="selectCustomTheme()" style="margin-top:8px;padding:4px 12px;border-radius:99px;border:none;background:${t.primary};color:#fff;font-size:12px;cursor:pointer">Use this theme ✓</button>`;
+    // auto-select it
+    currentTheme="custom";
+    selectSetupTheme("custom");
+  }catch(e){
+    document.getElementById("custom-theme-preview").style.display="block";
+    document.getElementById("custom-theme-preview").textContent="Couldn't generate theme. Try a different description!";
+  }
+  btn.textContent="Generate 🎨"; btn.disabled=false;
+}
+function selectCustomTheme(){
+  if(!customTheme)return;
+  currentTheme="custom";
+  THEMES["custom"]=customTheme;
+  selectSetupTheme("custom");
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function applyTheme(name){
+  currentTheme=name;
+  const t=name==="custom"&&customTheme?customTheme:(THEMES[name]||THEMES.rustic);
+  const r=document.documentElement.style;
+  r.setProperty("--primary",t.primary);r.setProperty("--accent",t.accent);
+  r.setProperty("--bg",t.bg);r.setProperty("--card",t.card);
+  r.setProperty("--border",t.border);r.setProperty("--text",t.text);
+  r.setProperty("--muted",t.muted);r.setProperty("--chapter",t.chapter);
+  document.body.style.background=t.bg;document.body.style.color=t.text;
+}
+function renderSetupThemes(){
+  const grid=document.getElementById("setup-theme-grid");
+  if(!grid)return;
+  grid.innerHTML="";
+  Object.entries(THEMES).forEach(([k,v])=>{
+    const d=document.createElement("div");
+    d.className="theme-swatch"+(currentTheme===k?" selected":"");
+    d.id="swatch-"+k;
+    d.style.cssText=`background:${v.bg};color:${v.primary};border-color:${currentTheme===k?v.primary:"transparent"}`;
+    d.innerHTML=`<div style="font-size:18px">${v.emoji}</div><div>${v.name}</div><div style="display:flex;gap:2px;justify-content:center;margin-top:4px">${[v.primary,v.accent,v.chapter].map(c=>`<div style="width:10px;height:10px;border-radius:50%;background:${c}"></div>`).join("")}</div>`;
+    d.onclick=()=>selectSetupTheme(k);
+    grid.appendChild(d);
+  });
+}
+function selectSetupTheme(k){
+  currentTheme=k;
+  document.querySelectorAll(".theme-swatch").forEach(s=>{
+    const sk=s.id.replace("swatch-","");
+    const tv=THEMES[sk]||customTheme;
+    if(!tv)return;
+    s.classList.toggle("selected",sk===k);
+    s.style.borderColor=sk===k?tv.primary:"transparent";
+  });
+}
+function renderThemeBar(){
+  const bar=document.getElementById("theme-bar");
+  if(!bar)return;
+  bar.innerHTML="";
+  Object.entries(THEMES).forEach(([k,v])=>{
+    const b=document.createElement("button");
+    b.className="theme-btn";
+    b.title=v.name;
+    b.style.cssText=`background:${v.bg};color:${v.primary};border:2px solid ${k===currentTheme?v.primary:v.border};font-weight:${k===currentTheme?600:400}`;
+    b.innerHTML=`${v.emoji} ${v.name}`;
+    b.onclick=()=>{applyTheme(k);renderThemeBar();saveData();};
+    bar.appendChild(b);
+  });
+  // Custom theme row
+  const row=document.createElement("div");
+  row.style.cssText="width:100%;display:flex;gap:8px;margin-top:4px;";
+  row.innerHTML=`<input id="quick-custom-input" placeholder="Describe a new theme…" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--text)"/>
+    <button onclick="quickCustomTheme()" style="padding:6px 12px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:12px;">Generate 🎨</button>`;
+  bar.appendChild(row);
+}
+async function quickCustomTheme(){
+  const inp=document.getElementById("quick-custom-input");
+  const desc=inp?.value?.trim();
+  if(!desc)return;
+  inp.value="Generating…"; inp.disabled=true;
+  try{
+    const res=await fetch(GEMINI_URL,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on: "${desc}". Return ONLY valid JSON no markdown: {"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}`}]}],
+        generationConfig:{maxOutputTokens:300,temperature:0.8}
+      })
+    });
+    const data=await res.json();
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const t=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    t.emoji="✨";
+    THEMES["custom"]=t;customTheme=t;
+    applyTheme("custom");renderThemeBar();saveData();
+  }catch(e){}
+  if(inp){inp.value="";inp.disabled=false;}
+}
+function toggleThemes(){
+  const bar=document.getElementById("theme-bar");
+  bar.style.display=bar.style.display==="none"||bar.style.display===""?"flex":"none";
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────────────────
+function startCookbook(){
+  cb.title =document.getElementById("s-title").value||"My Cookbook";
+  cb.author=document.getElementById("s-author").value||"";
+  cb.tagline=document.getElementById("s-tagline").value||"";
+  if(currentTheme==="custom"&&customTheme)THEMES["custom"]=customTheme;
+  document.getElementById("setup-screen").style.display="none";
+  document.getElementById("app").style.display="flex";
+  applyTheme(currentTheme);renderThemeBar();saveData();setView("cover");
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function setView(v){
+  currentView=v;
+  document.querySelectorAll(".nav-btn").forEach((b,i)=>{b.classList.toggle("active",["cover","toc","inventory","shopping"][i]===v);});
+  render();
+}
+function render(){
+  const el=document.getElementById("content");
+  if(currentView==="cover")el.innerHTML=renderCover();
+  else if(currentView==="toc")el.innerHTML=renderToc();
+  else if(currentView==="recipe"&&activeRecipe)el.innerHTML=renderRecipe(activeRecipe);
+  else if(currentView==="inventory")el.innerHTML=renderInventory();
+  else if(currentView==="shopping")el.innerHTML=renderShopping();
+}
+
+function renderCover(){
+  const total=cb.chapters.reduce((s,c)=>s+c.recipes.length,0);
+  const chRows=cb.chapters.length?cb.chapters.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:14px;color:var(--text)"><span class="serif">${esc(c.name)}</span><span style="color:var(--muted);font-size:12px">${c.recipes.length} recipe${c.recipes.length!==1?"s":""}</span></div>`).join(""):`<p style="color:var(--muted);font-size:14px;font-style:italic">Your cookbook is empty — ask your assistant to add a recipe!</p>`;
+  return`<div style="text-align:center;padding:32px 16px">
+    <div style="width:72px;height:4px;background:var(--primary);margin:0 auto 28px;border-radius:2px"></div>
+    <h1 class="serif" style="font-size:36px;font-weight:400;color:var(--text);margin:0 0 10px;line-height:1.2">${esc(cb.title||"My Cookbook")}</h1>
+    ${cb.author?`<p class="serif" style="font-size:16px;color:var(--muted);margin:0 0 8px;font-style:italic">by ${esc(cb.author)}</p>`:""}
+    ${cb.tagline?`<p style="font-size:14px;color:var(--muted);margin:0 0 28px">${esc(cb.tagline)}</p>`:""}
+    <div style="width:72px;height:4px;background:var(--primary);margin:0 auto 36px;border-radius:2px"></div>
+    <div style="display:flex;justify-content:center;gap:24px;margin-bottom:36px">
+      ${[["Recipes",total],["Chapters",cb.chapters.length],["Ingredients",cb.inventory.length]].map(([l,v])=>`<div style="text-align:center"><div class="stat-num">${v}</div><div class="stat-lbl">${l}</div></div>`).join("")}
+    </div>
+    ${cb.chapters.length?`<div style="text-align:left;max-width:360px;margin:0 auto"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Chapters</div>${chRows}</div>`:chRows}
+  </div>`;
+}
+function renderToc(){
+  if(!cb.chapters.length)return`<div style="text-align:center;color:var(--muted);font-size:14px;margin-top:48px;font-style:italic">No recipes yet. Ask your assistant to add one!</div>`;
+  return cb.chapters.map((ch,ci)=>{
+    if(chOpen[ci]===undefined)chOpen[ci]=true;
+    const rows=chOpen[ci]?ch.recipes.map((r,ri)=>{
+      const diff=r.difficulty&&DIFF[r.difficulty]?`<span class="diff-badge" style="background:${DIFF[r.difficulty].color}20;color:${DIFF[r.difficulty].color}">${DIFF[r.difficulty].label}</span>`:"";
+      return`<div class="toc-item" onclick="openRecipe(${ci},${ri})"><div><span class="serif" style="font-size:14px;color:var(--text)">${esc(r.title)}</span>${r.description?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${esc(r.description)}</div>`:""}</div><div style="display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:8px">${diff}${r.cookTime?`<span style="font-size:11px;color:var(--muted)">⏱ ${esc(r.cookTime)}</span>`:""}</div></div>`;
+    }).join(""):"";
+    return`<div style="margin-bottom:18px"><div class="ch-header" onclick="toggleChapter(${ci})"><span class="serif" style="font-size:17px;color:var(--chapter)">${esc(ch.name)}</span><span style="font-size:11px;color:var(--muted)">${ch.recipes.length} recipe${ch.recipes.length!==1?"s":""} ${chOpen[ci]?"▲":"▼"}</span></div>${rows}</div>`;
+  }).join("");
+}
+function toggleChapter(ci){chOpen[ci]=!chOpen[ci];render();}
+function openRecipe(ci,ri){activeRecipe=cb.chapters[ci].recipes[ri];currentView="recipe";render();}
+function renderRecipe(r){
+  const diff=r.difficulty&&DIFF[r.difficulty]?`<span class="diff-badge" style="background:${DIFF[r.difficulty].color}20;color:${DIFF[r.difficulty].color};padding:4px 10px;border-radius:99px">${DIFF[r.difficulty].label}</span>`:"";
+  const ings=(r.ingredients||[]).map(i=>`<div class="ing-row"><span style="font-weight:600;color:var(--chapter);min-width:80px">${esc(i.amount)} ${esc(i.unit)}</span><span style="color:var(--text)">${esc(i.name)}</span></div>`).join("");
+  const steps=(r.steps||[]).map((s,i)=>`<div class="step-row"><span class="step-num">${i+1}</span><span style="color:var(--text);line-height:1.6">${esc(s)}</span></div>`).join("");
+  return`<div>
+    <button onclick="backToToc()" style="font-size:12px;color:var(--muted);background:none;border:none;padding:0 0 14px;display:flex;align-items:center;gap:4px">← Back</button>
+    <div class="recipe-accent"><h2 class="serif" style="font-size:22px;font-weight:400;color:var(--text);margin:0 0 4px">${esc(r.title)}</h2>${r.description?`<p style="margin:0;color:var(--muted);font-size:13px;font-style:italic">${esc(r.description)}</p>`:""}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      ${r.servings?`<span class="chip">🍽 ${r.servings} servings</span>`:""}${r.prepTime?`<span class="chip">🥄 Prep: ${esc(r.prepTime)}</span>`:""}${r.cookTime?`<span class="chip">⏱ Cook: ${esc(r.cookTime)}</span>`:""}${diff}
+    </div>
+    <button onclick="addToShop()" class="chip" style="margin-bottom:16px;cursor:pointer">+ Add to shopping list</button>
+    <div style="margin-bottom:18px"><div class="section-title">Ingredients</div>${ings}</div>
+    <div style="margin-bottom:18px"><div class="section-title">Instructions</div>${steps}</div>
+    ${r.notes?`<div style="margin-bottom:18px"><div class="section-title">Notes</div><p style="font-size:13px;color:var(--muted);font-style:italic;line-height:1.6">${esc(r.notes)}</p></div>`:""}
+  </div>`;
+}
+function backToToc(){activeRecipe=null;currentView="toc";render();}
+function addToShop(){if(!activeRecipe)return;const items=(activeRecipe.ingredients||[]).map(i=>`${i.amount} ${i.unit} ${i.name}`.trim());shopList=[...new Set([...shopList,...items])];setView("shopping");}
+function renderInventory(){
+  const by=cb.chapters.map(ch=>({name:ch.name,items:[...new Set(ch.recipes.flatMap(r=>(r.ingredients||[]).map(i=>i.name)))]}));
+  return`<div><h2 class="serif" style="font-weight:400;font-size:20px;color:var(--text);margin:0 0 4px">Pantry Inventory</h2><p style="color:var(--muted);font-size:13px;margin-bottom:20px">${cb.inventory.length} unique ingredients across ${cb.chapters.length} chapters</p>${by.filter(c=>c.items.length).map(c=>`<div style="margin-bottom:16px"><div class="section-title">${esc(c.name)}</div><div style="display:flex;flex-wrap:wrap;gap:5px">${c.items.map(i=>`<span class="inv-tag">${esc(i)}</span>`).join("")}</div></div>`).join("")||`<p style="color:var(--muted);font-size:14px;font-style:italic">Add some recipes to populate your pantry.</p>`}</div>`;
+}
+function renderShopping(){
+  const done=shopList.filter((_,i)=>shopChecked[i]).length;
+  return`<div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px"><h2 class="serif" style="font-weight:400;font-size:20px;color:var(--text)">Shopping List</h2><button onclick="clearShop()" style="font-size:12px;color:var(--muted);background:none;border:none">Clear all</button></div>${shopList.length?shopList.map((item,i)=>`<div class="shop-item" onclick="toggleShop(${i})"><div class="check-box ${shopChecked[i]?"done":""}">${shopChecked[i]?"✓":""}</div><span style="font-size:13px;color:var(--text);text-decoration:${shopChecked[i]?"line-through":"none"};opacity:${shopChecked[i]?0.45:1}">${esc(item)}</span></div>`).join(""):`<p style="color:var(--muted);font-size:14px;font-style:italic">Open any recipe and tap "Add to shopping list".</p>`}${shopList.length?`<p style="font-size:12px;color:var(--muted);margin-top:10px">${done} of ${shopList.length} checked</p>`:""}</div>`;
+}
+function toggleShop(i){shopChecked[i]=!shopChecked[i];render();}
+function clearShop(){shopList=[];shopChecked={};render();}
+function doSearch(q){
+  const el=document.getElementById("search-results");
+  if(!q){el.style.display="none";el.innerHTML="";return;}
+  const all=cb.chapters.flatMap(c=>c.recipes.map(r=>({...r,chapter:c.name})));
+  const found=all.filter(r=>r.title.toLowerCase().includes(q.toLowerCase())||(r.ingredients||[]).some(i=>i.name.toLowerCase().includes(q.toLowerCase())));
+  el.style.display="block";
+  el.innerHTML=found.length?found.map(r=>`<div class="search-item" onclick="openSearchResult('${esc(r.title)}')"><span>${esc(r.title)}</span><span style="font-size:11px;color:var(--muted)">${esc(r.chapter)}</span></div>`).join(""):`<span style="font-size:12px;color:var(--muted)">No results</span>`;
+}
+function openSearchResult(title){
+  for(let ci=0;ci<cb.chapters.length;ci++)for(let ri=0;ri<cb.chapters[ci].recipes.length;ri++)if(cb.chapters[ci].recipes[ri].title===title){openRecipe(ci,ri);break;}
+  document.getElementById("search-input").value="";document.getElementById("search-results").style.display="none";
+}
+function randomRecipe(){const all=cb.chapters.flatMap((c,ci)=>c.recipes.map((_,ri)=>({ci,ri})));if(!all.length)return;const p=all[Math.floor(Math.random()*all.length)];openRecipe(p.ci,p.ri);}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+function setInput(txt){document.getElementById("chat-textarea").value=txt;}
+function handleKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}
+async function sendMsg(){
+  const inp=document.getElementById("chat-textarea");
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value="";
+  document.getElementById("hints").style.display="none";
+  document.getElementById("send-btn").disabled=true;
+  appendMsg("user",txt);msgs.push({role:"user",content:txt});
+  const loading=appendMsg("assistant","Thinking…");
+  const prompt=`Current cookbook state:\n${JSON.stringify(cb,null,2)}\n\nUser request: ${txt}`;
+  try{
+    const contents=[];
+    for(const m of msgs.slice(0,-1))contents.push({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]});
+    contents.push({role:"user",parts:[{text:prompt}]});
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({system_instruction:{parts:[{text:SYSTEM}]},contents,generationConfig:{maxOutputTokens:4000,temperature:0.7}})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const full=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const mi=full.lastIndexOf("COOKBOOK_STATE:");
+    const display=mi===-1?full:full.slice(0,mi).trim();
+    if(mi!==-1){try{cb=JSON.parse(full.slice(mi+15).trim());chOpen={};saveData();render();}catch(e){}}
+    loading.textContent=display||"Done! Your cookbook has been updated.";
+    msgs.push({role:"assistant",content:display});saveData();
+  }catch(e){loading.textContent="Error: "+e.message;}
+  document.getElementById("send-btn").disabled=false;
+}
+function appendMsg(role,text){const el=document.getElementById("messages");const d=document.createElement("div");d.className="msg "+role;d.textContent=text;el.appendChild(d);el.scrollTop=el.scrollHeight;return d;}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Check if already granted access this session
+if(localStorage.getItem("cbk_access")==="granted"){
+  document.getElementById("gate-screen").style.display="none";
+  if(loadData()){
+    document.getElementById("app").style.display="flex";
+    applyTheme(currentTheme);renderThemeBar();setView("cover");
+  } else {
+    document.getElementById("setup-screen").style.display="flex";
+    renderSetupThemes();
+  }
+} else {
+  applyTheme("rustic"); // default colors for gate screen
+}
+</script>
+</body>
+</html>
