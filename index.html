@@ -157,8 +157,7 @@ button,input,textarea{font-family:inherit;}button{cursor:pointer;}
 const ACCESS_CODES = ["RLBCOOKS2025","COOKBOOK24","CANVACHEF"];
 
 // ── GEMINI API KEY ───────────────────────────────────────────────────────────
-const GEMINI_API_KEY = "";
-const GEMINI_URL = "/gemini";
+const GEMINI_API_KEY = "YOUR_GEMINI_KEY_HERE";
 
 // ── THEMES ───────────────────────────────────────────────────────────────────
 const THEMES = {
@@ -237,7 +236,7 @@ async function generateCustomTheme(){
   const btn=document.getElementById("gen-theme-btn");
   btn.textContent="Thinking…"; btn.disabled=true;
   try{
-    const res=await fetch(GEMINI_URL,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on this description: "${desc}".
@@ -343,7 +342,7 @@ async function quickCustomTheme(){
   if(!desc)return;
   inp.value="Generating…"; inp.disabled=true;
   try{
-    const res=await fetch(GEMINI_URL,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on: "${desc}". Return ONLY valid JSON no markdown: {"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}`}]}],
@@ -476,7 +475,7 @@ async function sendMsg(){
     const contents=[];
     for(const m of msgs.slice(0,-1))contents.push({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]});
     contents.push({role:"user",parts:[{text:prompt}]});
-    const res=await fetch(`https://const res=await fetch(GEMINI_URL,{/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
+    const res=await fetch(GEMINI_URL,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({system_instruction:{parts:[{text:SYSTEM}]},contents,generationConfig:{maxOutputTokens:4000,temperature:0.7}})
     });
