@@ -49,8 +49,6 @@ button,input,textarea{font-family:inherit;}button{cursor:pointer;}
 .check-box.done{background:var(--primary);border-color:var(--primary);}
 #theme-bar{padding:10px 14px;border-bottom:1px solid var(--border);display:none;gap:8px;flex-wrap:wrap;background:var(--card);max-height:260px;overflow-y:auto;}
 .theme-btn{padding:4px 12px;border-radius:99px;font-size:12px;cursor:pointer;}
-
-/* Gate / Setup screens */
 .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;z-index:100;}
 .screen-box{max-width:480px;width:100%;background:#fff;border-radius:16px;border:1px solid #E8D5B7;padding:40px 36px;text-align:center;}
 .field{margin-bottom:14px;text-align:left;}
@@ -58,8 +56,6 @@ button,input,textarea{font-family:inherit;}button{cursor:pointer;}
 .finput{width:100%;padding:9px 12px;border-radius:8px;border:1px solid #E8D5B7;font-size:14px;background:#FDF6EE;color:#3D1F0A;}
 .go-btn{width:100%;padding:11px;border-radius:8px;background:#8B4513;color:#fff;border:none;font-size:15px;font-weight:500;}
 .hints div{cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted;line-height:2.2;font-size:13px;}
-
-/* Theme grid */
 .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;}
 .theme-swatch{border-radius:10px;padding:8px 6px;cursor:pointer;text-align:center;font-size:11px;font-weight:500;border:2px solid transparent;transition:transform .1s;}
 .theme-swatch:hover{transform:scale(1.04);}
@@ -152,30 +148,36 @@ button,input,textarea{font-family:inherit;}button{cursor:pointer;}
 </div>
 
 <script>
-// ── ACCESS CODE ──────────────────────────────────────────────────────────────
-// Change these to whatever codes you want to give customers!
+// ── CONFIG ── PASTE YOUR OPENROUTER KEY BELOW ────────────────────────────────
+const OR_KEY = "sk-or-PASTE-YOUR-KEY-HERE";
+// ────────────────────────────────────────────────────────────────────────────
+const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OR_MODEL = "google/gemini-flash-1.5";
+
 const ACCESS_CODES = ["RLBCOOKS2025","COOKBOOK24","CANVACHEF"];
 
-// ── GEMINI API KEY ───────────────────────────────────────────────────────────
-const GEMINI_API_KEY = "YOUR_GEMINI_KEY_HERE";
-
-// ── THEMES ───────────────────────────────────────────────────────────────────
 const THEMES = {
-  rustic:        {name:"Rustic",            emoji:"🌾", primary:"#8B4513",accent:"#D2691E",bg:"#FDF6EE",card:"#FFF8F0",border:"#E8D5B7",text:"#3D1F0A",muted:"#8B6650",chapter:"#C17F3E"},
-  modern:        {name:"Modern Minimal",    emoji:"⬛", primary:"#1A1A1A",accent:"#4A4A4A",bg:"#F8F8F6",card:"#FFFFFF",border:"#E0E0DC",text:"#1A1A1A",muted:"#6B6B6B",chapter:"#2D2D2D"},
-  mediterranean: {name:"Mediterranean",     emoji:"🫒", primary:"#1B4F72",accent:"#2E86AB",bg:"#EEF4F8",card:"#F5F9FC",border:"#B8D4E3",text:"#0D2B3E",muted:"#4A7A96",chapter:"#1B6CA8"},
-  garden:        {name:"Garden",            emoji:"🌿", primary:"#2D5016",accent:"#4A7C25",bg:"#F2F7EE",card:"#F8FCF5",border:"#C4D9B3",text:"#1A3009",muted:"#4D6B38",chapter:"#3A6B1A"},
-  rose:          {name:"Rose Kitchen",      emoji:"🌹", primary:"#7B2D3E",accent:"#B5485A",bg:"#FDF0F2",card:"#FFF5F6",border:"#E8C4CB",text:"#3D0D15",muted:"#9B5A66",chapter:"#A0364A"},
-  coastal:       {name:"Coastal",           emoji:"🌊", primary:"#1A6B7C",accent:"#2E9EB5",bg:"#EEF8FA",card:"#F5FBFC",border:"#B3DDE5",text:"#0D3A42",muted:"#4A8A96",chapter:"#1D8A9E"},
-  farmhouse:     {name:"Farmhouse",         emoji:"🏡", primary:"#4A3728",accent:"#7A5C44",bg:"#F7F2EC",card:"#FBF8F4",border:"#DDD0BF",text:"#2A1F16",muted:"#7A6555",chapter:"#6B4E38"},
-  lavender:      {name:"Lavender Dream",    emoji:"💜", primary:"#5B3E8C",accent:"#8B6EC2",bg:"#F4F0FA",card:"#F9F7FD",border:"#D8CCF0",text:"#2D1A5A",muted:"#7A65A8",chapter:"#7048B0"},
-  sunset:        {name:"Sunset Kitchen",    emoji:"🌅", primary:"#C4501A",accent:"#E8762E",bg:"#FEF4EE",card:"#FFF8F3",border:"#F0D0B8",text:"#4A1A06",muted:"#A06040",chapter:"#D4622A"},
-  midnight:      {name:"Midnight Feast",    emoji:"🌙", primary:"#C9A84C",accent:"#E8C870",bg:"#1A1A2E",card:"#16213E",border:"#2D3561",text:"#E8E0D0",muted:"#9A9080",chapter:"#C9A84C"},
+  rustic:        {name:"Rustic",          emoji:"🌾",primary:"#8B4513",accent:"#D2691E",bg:"#FDF6EE",card:"#FFF8F0",border:"#E8D5B7",text:"#3D1F0A",muted:"#8B6650",chapter:"#C17F3E"},
+  modern:        {name:"Modern Minimal",  emoji:"⬛",primary:"#1A1A1A",accent:"#4A4A4A",bg:"#F8F8F6",card:"#FFFFFF",border:"#E0E0DC",text:"#1A1A1A",muted:"#6B6B6B",chapter:"#2D2D2D"},
+  mediterranean: {name:"Mediterranean",   emoji:"🫒",primary:"#1B4F72",accent:"#2E86AB",bg:"#EEF4F8",card:"#F5F9FC",border:"#B8D4E3",text:"#0D2B3E",muted:"#4A7A96",chapter:"#1B6CA8"},
+  garden:        {name:"Garden",          emoji:"🌿",primary:"#2D5016",accent:"#4A7C25",bg:"#F2F7EE",card:"#F8FCF5",border:"#C4D9B3",text:"#1A3009",muted:"#4D6B38",chapter:"#3A6B1A"},
+  rose:          {name:"Rose Kitchen",    emoji:"🌹",primary:"#7B2D3E",accent:"#B5485A",bg:"#FDF0F2",card:"#FFF5F6",border:"#E8C4CB",text:"#3D0D15",muted:"#9B5A66",chapter:"#A0364A"},
+  coastal:       {name:"Coastal",         emoji:"🌊",primary:"#1A6B7C",accent:"#2E9EB5",bg:"#EEF8FA",card:"#F5FBFC",border:"#B3DDE5",text:"#0D3A42",muted:"#4A8A96",chapter:"#1D8A9E"},
+  farmhouse:     {name:"Farmhouse",       emoji:"🏡",primary:"#4A3728",accent:"#7A5C44",bg:"#F7F2EC",card:"#FBF8F4",border:"#DDD0BF",text:"#2A1F16",muted:"#7A6555",chapter:"#6B4E38"},
+  lavender:      {name:"Lavender Dream",  emoji:"💜",primary:"#5B3E8C",accent:"#8B6EC2",bg:"#F4F0FA",card:"#F9F7FD",border:"#D8CCF0",text:"#2D1A5A",muted:"#7A65A8",chapter:"#7048B0"},
+  sunset:        {name:"Sunset Kitchen",  emoji:"🌅",primary:"#C4501A",accent:"#E8762E",bg:"#FEF4EE",card:"#FFF8F3",border:"#F0D0B8",text:"#4A1A06",muted:"#A06040",chapter:"#D4622A"},
+  midnight:      {name:"Midnight Feast",  emoji:"🌙",primary:"#C9A84C",accent:"#E8C870",bg:"#1A1A2E",card:"#16213E",border:"#2D3561",text:"#E8E0D0",muted:"#9A9080",chapter:"#C9A84C"},
+  rainbow:       {name:"Rainbow Kitchen", emoji:"🌈",primary:"#E03A8C",accent:"#FF6B35",bg:"#FFF9FE",card:"#FFFFFF",border:"#FFD6F0",text:"#2D0A1F",muted:"#B06090",chapter:"#9B35C0"},
+  unicorn:       {name:"Unicorn Feast",   emoji:"🦄",primary:"#8B5CF6",accent:"#EC4899",bg:"#FDF4FF",card:"#FFF8FF",border:"#E9D5FF",text:"#2E1065",muted:"#7C3AED",chapter:"#A855F7"},
+  animal:        {name:"Animal Bites",    emoji:"🐾",primary:"#B45309",accent:"#D97706",bg:"#FFFBEB",card:"#FEFCE8",border:"#FDE68A",text:"#451A03",muted:"#92400E",chapter:"#C27803"},
+  littlechef:    {name:"Little Chef",     emoji:"👨‍🍳",primary:"#DC2626",accent:"#F59E0B",bg:"#FFF5F5",card:"#FFFFFF",border:"#FECACA",text:"#450A0A",muted:"#991B1B",chapter:"#EF4444"},
+  candyland:     {name:"Candy Land",      emoji:"🍭",primary:"#DB2777",accent:"#A855F7",bg:"#FFF0F9",card:"#FFF5FB",border:"#FBCFE8",text:"#500724",muted:"#BE185D",chapter:"#EC4899"},
 };
 
-let customTheme = null;
-const DIFF = {easy:{label:"Easy",color:"#2D7A2D"},medium:{label:"Medium",color:"#B8860B"},hard:{label:"Hard",color:"#A0364A"}};
-const SYSTEM = `You are a personal cookbook assistant helping create a beautifully structured cookbook.
+let customTheme=null;
+const DIFF={easy:{label:"Easy",color:"#2D7A2D"},medium:{label:"Medium",color:"#B8860B"},hard:{label:"Hard",color:"#A0364A"}};
+
+const SYSTEM=`You are a personal cookbook assistant helping create a beautifully structured cookbook.
 
 EVERY response MUST end with this exact marker and valid JSON — no markdown, no fences:
 
@@ -199,89 +201,79 @@ let shopChecked={};
 let chOpen={};
 let activeRecipe=null;
 
-// ── STORAGE ──────────────────────────────────────────────────────────────────
-function saveData(){try{localStorage.setItem("cbk_v5",JSON.stringify({cb,msgs,theme:currentTheme,done:true}));}catch(e){}}
+function saveData(){try{localStorage.setItem("cbk_v6",JSON.stringify({cb,msgs,theme:currentTheme,done:true}));}catch(e){}}
 function loadData(){
-  try{const d=JSON.parse(localStorage.getItem("cbk_v5"));
+  try{const d=JSON.parse(localStorage.getItem("cbk_v6"));
     if(!d)return false;
     if(d.cb)cb=d.cb;if(d.msgs)msgs=d.msgs;if(d.theme)currentTheme=d.theme;
     return!!d.done;
   }catch(e){return false;}
 }
 
-// ── ACCESS GATE ──────────────────────────────────────────────────────────────
+// ── AI CALL ──────────────────────────────────────────────────────────────────
+async function callAI(messages){
+  const res=await fetch(OR_URL,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${OR_KEY}`,
+      "HTTP-Referer":"https://cookbook-app-36w.pages.dev",
+      "X-Title":"RLB Cookbook Builder"
+    },
+    body:JSON.stringify({
+      model:OR_MODEL,
+      messages:[{role:"system",content:SYSTEM},...messages],
+      max_tokens:4000,
+      temperature:0.7
+    })
+  });
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message);
+  return data.choices?.[0]?.message?.content||"";
+}
+
 function checkCode(){
   const val=document.getElementById("access-input").value.trim().toUpperCase();
-  const validCodes=ACCESS_CODES.map(c=>c.toUpperCase());
-  if(validCodes.includes(val)){
+  if(ACCESS_CODES.map(c=>c.toUpperCase()).includes(val)){
     localStorage.setItem("cbk_access","granted");
     document.getElementById("gate-screen").style.display="none";
     if(loadData()){
       document.getElementById("app").style.display="flex";
       applyTheme(currentTheme);renderThemeBar();setView("cover");
-    } else {
+    }else{
       document.getElementById("setup-screen").style.display="flex";
       renderSetupThemes();
     }
-  } else {
+  }else{
     document.getElementById("code-error").style.display="block";
     document.getElementById("access-input").value="";
   }
 }
 
-// ── CUSTOM THEME GENERATOR ───────────────────────────────────────────────────
 async function generateCustomTheme(){
   const desc=document.getElementById("custom-theme-input").value.trim();
   if(!desc)return;
   const btn=document.getElementById("gen-theme-btn");
-  btn.textContent="Thinking…"; btn.disabled=true;
+  btn.textContent="Thinking…";btn.disabled=true;
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on this description: "${desc}".
-Return ONLY valid JSON, no explanation, no markdown:
-{"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}
-Rules: bg should be very light, card slightly lighter than bg, text should be very readable on bg, primary and chapter should be rich/saturated, muted should be softer version of text.`}]}],
-        generationConfig:{maxOutputTokens:300,temperature:0.8}
-      })
-    });
-    const data=await res.json();
-    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
-    const cleaned=raw.replace(/```json|```/g,"").trim();
-    const t=JSON.parse(cleaned);
-    t.emoji="✨";
-    customTheme=t;
-    // show preview
+    const raw=await callAI([{role:"user",content:`Generate a beautiful color theme for a cookbook app based on: "${desc}". Return ONLY valid JSON no markdown: {"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"} Rules: bg very light, text very readable, primary rich/saturated.`}]);
+    const t=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    t.emoji="✨";customTheme=t;
     const prev=document.getElementById("custom-theme-preview");
-    prev.style.display="block";
-    prev.style.background=t.bg;
-    prev.style.border=`2px solid ${t.primary}`;
+    prev.style.display="block";prev.style.background=t.bg;prev.style.border=`2px solid ${t.primary}`;
     prev.innerHTML=`<span style="color:${t.primary};font-weight:600;font-size:14px">${t.name}</span><br>
-      <span style="color:${t.text};font-size:12px">Sample text — </span>
-      <span style="color:${t.chapter};font-size:12px">Chapter heading — </span>
-      <span style="color:${t.muted};font-size:12px">Muted note</span><br>
-      <div style="margin-top:6px;display:flex;gap:6px">
-        ${[t.primary,t.accent,t.chapter,t.bg,t.card,t.border].map(c=>`<div style="width:20px;height:20px;border-radius:4px;background:${c};border:1px solid #ccc"></div>`).join("")}
-      </div>
+      <span style="color:${t.text};font-size:12px">Sample text — </span><span style="color:${t.chapter};font-size:12px">Chapter heading — </span><span style="color:${t.muted};font-size:12px">Muted note</span><br>
+      <div style="margin-top:6px;display:flex;gap:6px">${[t.primary,t.accent,t.chapter,t.bg,t.card,t.border].map(c=>`<div style="width:20px;height:20px;border-radius:4px;background:${c};border:1px solid #ccc"></div>`).join("")}</div>
       <button onclick="selectCustomTheme()" style="margin-top:8px;padding:4px 12px;border-radius:99px;border:none;background:${t.primary};color:#fff;font-size:12px;cursor:pointer">Use this theme ✓</button>`;
-    // auto-select it
-    currentTheme="custom";
-    selectSetupTheme("custom");
+    currentTheme="custom";selectSetupTheme("custom");
   }catch(e){
     document.getElementById("custom-theme-preview").style.display="block";
     document.getElementById("custom-theme-preview").textContent="Couldn't generate theme. Try a different description!";
   }
-  btn.textContent="Generate 🎨"; btn.disabled=false;
+  btn.textContent="Generate 🎨";btn.disabled=false;
 }
-function selectCustomTheme(){
-  if(!customTheme)return;
-  currentTheme="custom";
-  THEMES["custom"]=customTheme;
-  selectSetupTheme("custom");
-}
+function selectCustomTheme(){if(!customTheme)return;currentTheme="custom";THEMES["custom"]=customTheme;selectSetupTheme("custom");}
 
-// ── THEME ─────────────────────────────────────────────────────────────────────
 function applyTheme(name){
   currentTheme=name;
   const t=name==="custom"&&customTheme?customTheme:(THEMES[name]||THEMES.rustic);
@@ -293,79 +285,50 @@ function applyTheme(name){
   document.body.style.background=t.bg;document.body.style.color=t.text;
 }
 function renderSetupThemes(){
-  const grid=document.getElementById("setup-theme-grid");
-  if(!grid)return;
-  grid.innerHTML="";
+  const grid=document.getElementById("setup-theme-grid");if(!grid)return;grid.innerHTML="";
   Object.entries(THEMES).forEach(([k,v])=>{
     const d=document.createElement("div");
-    d.className="theme-swatch"+(currentTheme===k?" selected":"");
-    d.id="swatch-"+k;
+    d.className="theme-swatch"+(currentTheme===k?" selected":"");d.id="swatch-"+k;
     d.style.cssText=`background:${v.bg};color:${v.primary};border-color:${currentTheme===k?v.primary:"transparent"}`;
     d.innerHTML=`<div style="font-size:18px">${v.emoji}</div><div>${v.name}</div><div style="display:flex;gap:2px;justify-content:center;margin-top:4px">${[v.primary,v.accent,v.chapter].map(c=>`<div style="width:10px;height:10px;border-radius:50%;background:${c}"></div>`).join("")}</div>`;
-    d.onclick=()=>selectSetupTheme(k);
-    grid.appendChild(d);
+    d.onclick=()=>selectSetupTheme(k);grid.appendChild(d);
   });
 }
 function selectSetupTheme(k){
   currentTheme=k;
   document.querySelectorAll(".theme-swatch").forEach(s=>{
-    const sk=s.id.replace("swatch-","");
-    const tv=THEMES[sk]||customTheme;
-    if(!tv)return;
-    s.classList.toggle("selected",sk===k);
-    s.style.borderColor=sk===k?tv.primary:"transparent";
+    const sk=s.id.replace("swatch-","");const tv=THEMES[sk]||customTheme;if(!tv)return;
+    s.classList.toggle("selected",sk===k);s.style.borderColor=sk===k?tv.primary:"transparent";
   });
 }
 function renderThemeBar(){
-  const bar=document.getElementById("theme-bar");
-  if(!bar)return;
-  bar.innerHTML="";
+  const bar=document.getElementById("theme-bar");if(!bar)return;bar.innerHTML="";
   Object.entries(THEMES).forEach(([k,v])=>{
-    const b=document.createElement("button");
-    b.className="theme-btn";
-    b.title=v.name;
+    const b=document.createElement("button");b.className="theme-btn";b.title=v.name;
     b.style.cssText=`background:${v.bg};color:${v.primary};border:2px solid ${k===currentTheme?v.primary:v.border};font-weight:${k===currentTheme?600:400}`;
-    b.innerHTML=`${v.emoji} ${v.name}`;
-    b.onclick=()=>{applyTheme(k);renderThemeBar();saveData();};
+    b.innerHTML=`${v.emoji} ${v.name}`;b.onclick=()=>{applyTheme(k);renderThemeBar();saveData();};
     bar.appendChild(b);
   });
-  // Custom theme row
-  const row=document.createElement("div");
-  row.style.cssText="width:100%;display:flex;gap:8px;margin-top:4px;";
+  const row=document.createElement("div");row.style.cssText="width:100%;display:flex;gap:8px;margin-top:4px;";
   row.innerHTML=`<input id="quick-custom-input" placeholder="Describe a new theme…" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--text)"/>
     <button onclick="quickCustomTheme()" style="padding:6px 12px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:12px;">Generate 🎨</button>`;
   bar.appendChild(row);
 }
 async function quickCustomTheme(){
   const inp=document.getElementById("quick-custom-input");
-  const desc=inp?.value?.trim();
-  if(!desc)return;
-  inp.value="Generating…"; inp.disabled=true;
+  const desc=inp?.value?.trim();if(!desc)return;
+  inp.value="Generating…";inp.disabled=true;
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        contents:[{role:"user",parts:[{text:`Generate a beautiful color theme for a cookbook app based on: "${desc}". Return ONLY valid JSON no markdown: {"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}`}]}],
-        generationConfig:{maxOutputTokens:300,temperature:0.8}
-      })
-    });
-    const data=await res.json();
-    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const raw=await callAI([{role:"user",content:`Generate a beautiful color theme for a cookbook app based on: "${desc}". Return ONLY valid JSON no markdown: {"name":"Theme Name","primary":"#hex","accent":"#hex","bg":"#hex","card":"#hex","border":"#hex","text":"#hex","muted":"#hex","chapter":"#hex"}`}]);
     const t=JSON.parse(raw.replace(/```json|```/g,"").trim());
-    t.emoji="✨";
-    THEMES["custom"]=t;customTheme=t;
-    applyTheme("custom");renderThemeBar();saveData();
+    t.emoji="✨";THEMES["custom"]=t;customTheme=t;applyTheme("custom");renderThemeBar();saveData();
   }catch(e){}
   if(inp){inp.value="";inp.disabled=false;}
 }
-function toggleThemes(){
-  const bar=document.getElementById("theme-bar");
-  bar.style.display=bar.style.display==="none"||bar.style.display===""?"flex":"none";
-}
+function toggleThemes(){const bar=document.getElementById("theme-bar");bar.style.display=bar.style.display==="none"||bar.style.display===""?"flex":"none";}
 
-// ── SETUP ─────────────────────────────────────────────────────────────────────
 function startCookbook(){
-  cb.title =document.getElementById("s-title").value||"My Cookbook";
+  cb.title=document.getElementById("s-title").value||"My Cookbook";
   cb.author=document.getElementById("s-author").value||"";
   cb.tagline=document.getElementById("s-tagline").value||"";
   if(currentTheme==="custom"&&customTheme)THEMES["custom"]=customTheme;
@@ -374,7 +337,6 @@ function startCookbook(){
   applyTheme(currentTheme);renderThemeBar();saveData();setView("cover");
 }
 
-// ── VIEWS ─────────────────────────────────────────────────────────────────────
 function setView(v){
   currentView=v;
   document.querySelectorAll(".nav-btn").forEach((b,i)=>{b.classList.toggle("active",["cover","toc","inventory","shopping"][i]===v);});
@@ -458,10 +420,9 @@ function openSearchResult(title){
   document.getElementById("search-input").value="";document.getElementById("search-results").style.display="none";
 }
 function randomRecipe(){const all=cb.chapters.flatMap((c,ci)=>c.recipes.map((_,ri)=>({ci,ri})));if(!all.length)return;const p=all[Math.floor(Math.random()*all.length)];openRecipe(p.ci,p.ri);}
-
-// ── CHAT ──────────────────────────────────────────────────────────────────────
 function setInput(txt){document.getElementById("chat-textarea").value=txt;}
 function handleKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}
+
 async function sendMsg(){
   const inp=document.getElementById("chat-textarea");
   const txt=inp.value.trim();if(!txt)return;
@@ -472,16 +433,9 @@ async function sendMsg(){
   const loading=appendMsg("assistant","Thinking…");
   const prompt=`Current cookbook state:\n${JSON.stringify(cb,null,2)}\n\nUser request: ${txt}`;
   try{
-    const contents=[];
-    for(const m of msgs.slice(0,-1))contents.push({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]});
-    contents.push({role:"user",parts:[{text:prompt}]});
-    const res=await fetch(GEMINI_URL,{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({system_instruction:{parts:[{text:SYSTEM}]},contents,generationConfig:{maxOutputTokens:4000,temperature:0.7}})
-    });
-    const data=await res.json();
-    if(data.error)throw new Error(data.error.message);
-    const full=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const apiMsgs=msgs.slice(0,-1).map(m=>({role:m.role,content:m.content}));
+    apiMsgs.push({role:"user",content:prompt});
+    const full=await callAI(apiMsgs);
     const mi=full.lastIndexOf("COOKBOOK_STATE:");
     const display=mi===-1?full:full.slice(0,mi).trim();
     if(mi!==-1){try{cb=JSON.parse(full.slice(mi+15).trim());chOpen={};saveData();render();}catch(e){}}
@@ -493,20 +447,16 @@ async function sendMsg(){
 function appendMsg(role,text){const el=document.getElementById("messages");const d=document.createElement("div");d.className="msg "+role;d.textContent=text;el.appendChild(d);el.scrollTop=el.scrollHeight;return d;}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-// Check if already granted access this session
 if(localStorage.getItem("cbk_access")==="granted"){
   document.getElementById("gate-screen").style.display="none";
   if(loadData()){
     document.getElementById("app").style.display="flex";
     applyTheme(currentTheme);renderThemeBar();setView("cover");
-  } else {
+  }else{
     document.getElementById("setup-screen").style.display="flex";
     renderSetupThemes();
   }
-} else {
-  applyTheme("rustic"); // default colors for gate screen
-}
+}else{applyTheme("rustic");}
 </script>
 </body>
 </html>
